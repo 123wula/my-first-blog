@@ -212,7 +212,7 @@ git mergetool  # 启动图形化冲突解决工具
     
 29. server running的时候打开新的终端窗口，并运行激活命令
 
-30. 
+30. 修改ssh
 
 
 

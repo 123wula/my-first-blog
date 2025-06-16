@@ -177,6 +177,178 @@ h1 a, h2 a {
     {% endfor %}
 {% endblock %}
 
+<h2><a href="{% url 'post_detail' pk=post.pk %}">{{ post.title }}</a></h2>
+
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.post_list, name='post_list'),
+    path('post/<int:pk>/', views.post_detail, name='post_detail'),
+]
+
+#blog/view.py
+from django.shortcuts import render, get_object_or_404
+...
+def post_detail(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    return render(request, 'blog/post_detail.html', {'post': post})
+
+#blog\templates\blog\post_detail.html
+
+{% extends 'blog/base.html' %}
+
+{% block content %}
+    <div class="post">
+        {% if post.published_date %}
+            <div class="date">
+                {{ post.published_date }}
+            </div>
+        {% endif %}
+        <h2>{{ post.title }}</h2>
+        <p>{{ post.text|linebreaksbr }}</p>
+    </div>
+{% endblock %}
+
+#创建blog/forms.py
+  blog
+    └── forms.py
+from django import forms
+
+from .models import Post
+
+class PostForm(forms.ModelForm):
+
+    class Meta:
+        model = Post
+        fields = ('title', 'text',)
+
+#base.html
+<a href="{% url 'post_new' %}" class="top-menu"><span class="glyphicon glyphicon-plus"></span></a>
+
+#blog/urls.py
+path('post/new/', views.post_new, name='post_new'),
+
+#blog/views.py
+from .forms import PostForm
+
+def post_new(request):
+    form = PostForm()
+    return render(request, 'blog/post_edit.html', {'form': form})
+
+#post_edit.html
+{% extends 'blog/base.html' %}
+
+{% block content %}
+    <h2>New post</h2>
+    <form method="POST" class="post-form">{% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="save btn btn-default">Save</button>
+    </form>
+{% endblock %}
+
+#views.py
+from django.shortcuts import redirect
+
+def post_new(request):
+    if request.method == "POST":
+        form = PostForm(request.POST)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = request.user
+            post.published_date = timezone.now()
+            post.save()
+            return redirect('post_detail', pk=post.pk)
+    else:
+        form = PostForm()
+    return render(request, 'blog/post_edit.html', {'form': form})
+
+#post_detail.html
+<a class="btn btn-default" href="{% url 'post_edit' pk=post.pk %}"><span class="glyphicon glyphicon-pencil"></span></a>
+
+#urls.py
+path('post/<int:pk>/edit/', views.post_edit, name='post_edit'),
+
+def post_edit(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    if request.method == "POST":
+        form = PostForm(request.POST, instance=post)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = request.user
+            post.published_date = timezone.now()
+            post.save()
+            return redirect('post_detail', pk=post.pk)
+    else:
+        form = PostForm(instance=post)
+    return render(request, 'blog/post_edit.html', {'form': form})
+
+
+#base.html
+{% if user.is_authenticated %}
+    <a href="{% url 'post_new' %}" class="top-menu"><span class="glyphicon glyphicon-plus"></span></a>
+{% endif %}
+
+#post_detail.html
+{% if user.is_authenticated %}
+     <a class="btn btn-default" href="{% url 'post_edit' pk=post.pk %}"><span class="glyphicon glyphicon-pencil"></span></a>
+{% endif %}
+
+
+BHY&DeepSeek--Solution for Offline:
+1.
+<!-- templates/offline.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>服务维护中</title>
+</head>
+<body>
+  <h1>服务暂时不可用</h1>
+  <img src="{% static 'img/maintenance.png' %}" alt="维护中">
+  <p>请稍后再访问</p>
+</body>
+</html>
+2. 
+// static/js/sw.js
+const CACHE_NAME = 'offline-v1';
+const OFFLINE_URL = '/offline/';  // 离线页面的URL
+
+// 安装时缓存离线页面
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => cache.add(OFFLINE_URL))
+  );
+});
+
+// 拦截请求
+self.addEventListener('fetch', (event) => {
+  // 尝试网络请求，失败则返回离线页面
+  event.respondWith(
+    fetch(event.request).catch(() => {
+      return caches.match(OFFLINE_URL);
+    })
+  );
+});
+3.
+<!-- base.html -->
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('{% static "js/sw.js" %}');
+  }
+</script>
+4.
+# urls.py
+from django.views.generic import TemplateView
+
+urlpatterns = [
+    ...,
+    path ('offline/', TemplateView.as_view(template_name='offline.html'), 
+]
+4. 效果
+当服务器停止后，用户访问任何页面均会显示offline.html中的内容。
+
 
 
 2. 框架搭建
@@ -377,8 +549,11 @@ h1 a, h2 a {
             1. DOM|CSS|Render Tree
             2. Layout的计算
             3. Paint
-            
-    
+    10. Django的表单以及 ModelForm-- 参考HTML的表单
+        1. 基础表单——通用数据
+
+        2. 交互式 Web
+
 
 4. Django的设计解构
     1. 用户认证（Authentication）
@@ -413,24 +588,33 @@ h1 a, h2 a {
         4. Django的ORM、表单和模板系统|
            元编程~界面|
            权限系统（`django.contrib.auth`）控制用户访问
-    6. 表单（Forms）
-        1. key kit
-            - **Form类**：定义表单字段和验证逻辑。
+    6. HTML组件的 Django 模型重建
+        1. 表单（Forms）
+            1. Why/How Is Django.form:
+                1. Python代码以高度可定制化、可维护的方式控制表单的各个方面|部件
+                   属性字段|数据处理|渲染|安全
+                2. use python as tool
+                3. 表单逻辑是 a block of intensive and maybe independent logic, 集中在表单类中，符合高内聚原则-->字段级和表单级的验证逻辑。
+                4. Django表单自动生成HTML+ 多种方式自定义渲染（例如，使用模板、自定义模板标签、覆盖字段的widget属性等）     
+                   
+            1. key kit
+                - **Form类**：定义表单字段和验证逻辑。
 
-            - **ModelForm**：基于模型自动生成表单。 
+                - **ModelForm**：基于模型自动生成表单。 
 
-            - 字段和窗口小部件（widgets）验证|渲染
+                - 字段和窗口小部件（widgets）验证|渲染
 
-            - CSRF保护（需要中间件支持）
+                - CSRF保护（需要中间件支持）
 
-        2. 处理流程
-            1. 定义表单（指定字段和验证器）。
+            2. 处理流程
+                1. 定义表单（指定字段和验证器）。
 
-            2. 在视图中实例化表单（GET请求时为空表单，POST请求时绑定数据）。
+                2. 在视图中实例化表单（GET请求时为空表单，POST请求时绑定数据）。
 
-            3. 调用`is_valid()`验证，然后使用`cleaned_data`获取干净数据。
+                3. 调用`is_valid()`验证，然后使用`cleaned_data`获取干净数据。
 
-            4. 保存数据（如果是ModelForm，则调用`save()`）。
+                4. 保存数据（如果是ModelForm，则调用`save()`）。
+            
     7. 文件上传
         `FileField|
         enctype="multipart/form-data|

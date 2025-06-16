@@ -1,0 +1,39 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <title>服务维护中</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 50px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #e74c3c;
+    }
+    img {
+      max-width: 200px;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>服务暂时不可用</h1>
+    <img src="{% static 'img/maintenance.png' %}" alt="维护中">
+    <p>我们正在对系统进行维护升级，请稍后再访问。</p>
+    <p>给您带来的不便，敬请谅解。</p>
+    <button onclick="window.location.reload()">重试连接</button>
+  </div>
+</body>
+</html>
