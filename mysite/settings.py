@@ -56,8 +56,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-   
-]
+
 
 ROOT_URLCONF = "mysite.urls"
 
@@ -127,7 +126,10 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT=os.path.join(BASE_DIR,'static')
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'# Default primary key field type
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+
+# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
