@@ -2,13 +2,6 @@ from django.shortcuts import render, get_object_or_404,redirect
 from django.utils import timezone
 from .models import Post
 from .forms import PostForm
-from django.views.decorators.http import require_GET
-
-@require_GET
-def offline_view(request):
-    """离线页面视图，添加调试信息"""
-    print("离线页面请求")
-    return render(request, 'offline.html')
 
     
 def post_list(request):

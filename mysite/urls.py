@@ -20,8 +20,6 @@ from django.urls import path, include
 from django.views.generic import TemplateView
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.views.generic.base import RedirectView
-from blog.views import offline_view
-from django.contrib.staticfiles.views import serve
 from django.conf import settings
 
 
@@ -29,9 +27,5 @@ from django.conf import settings
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('blog.urls')),
-    # 添加离线页面路由
-    path('offline/', offline_view, name='offline'),    
-    # 确保Service Worker文件不被缓存
-    path('static/<path:path>', serve, {'document_root': settings.STATIC_ROOT}),
 
 ]

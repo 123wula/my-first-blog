@@ -28,42 +28,6 @@
     
         {% load static %}
 
-        <!-- Service Worker 注册 -->
-        <!-- 在 </body> 标签前添加 -->
-        <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-            // 注册 Service Worker 并指定根作用域
-              navigator.serviceWorker.register("{% static 'root/sw.js' %}", { scope: '/' })
-                .then(registration => {
-                console.log('SW 注册成功，作用域:', registration.scope);
-                
-                // 强制立即更新
-                registration.update();
-                
-                // 监听更新事件
-                registration.addEventListener('updatefound', () => {
-                    const newWorker = registration.installing;
-                    console.log('检测到新 SW 版本');
-                    
-                    newWorker.addEventListener('statechange', () => {
-                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                        console.log('新版本已安装，等待激活');
-                    }
-                    });
-                });
-                })
-                .catch(error => {
-                console.error('SW 注册失败:', error);
-                });
-            });
-            
-            // 监听控制器变化
-            navigator.serviceWorker.addEventListener('controllerchange', () => {
-            console.log('控制器变更，刷新页面');
-            window.location.reload();
-            });
-        }
-        </script>
+
     </body>
 </html>
